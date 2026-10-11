@@ -59,7 +59,18 @@ let db;
     if (req.method === 'GET' && url.pathname === '/health') return json(res, { status: 'ok' });
     json(res, { error: 'Not found' }, 404);
   } catch (error) {
-    json(res, { error: error.message === 'Request too large' ? error.message : 'Unable to read the demo data or answer this request.' }, error.message === 'Request too large' ? 413 : 500);
+    console.error('POC request failed', {
+      path: url.pathname,
+      name: error?.name,
+      code: error?.code,
+      message: error?.message,
+    });
+
+    json(
+      res,
+      { error: 'Unable to read the demo data or answer this request.' },
+      500,
+    );
   } finally {
     db?.close();
   }
