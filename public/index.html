@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111210">
+  <title>Wooden Bakery · Sales Intelligence Demo</title>
+  <link rel="icon" href="/logo.png" type="image/png">
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="Wooden Bakery Sales Intelligence home"><img src="/logo.png" alt="Wooden Bakery"></a>
+    <div class="topbar-right"><span class="period-tag"><i></i> JUL–AUG 2026 SNAPSHOT</span><span class="live-label">REFRESHED <b id="refresh-time">—</b></span></div>
+  </header>
+  <main class="shell">
+    <section class="hero">
+      <div><p class="eyebrow">SALES INTELLIGENCE <span> / DEMO</span></p><h1>Good morning,<br><em>let’s look at the numbers.</em></h1><p class="lede">A clear view of sales performance, customer activity, and the questions behind the data.</p></div>
+      <label class="period-control">REPORTING PERIOD<select id="period" aria-label="Reporting period"><option value="both">July – August 2026</option><option value="july">July 2026</option><option value="august">August 2026</option></select></label>
+    </section>
+    <section id="notice" class="notice" aria-live="polite" hidden></section>
+    <section class="kpis" aria-label="Sales overview metrics">
+      <article class="kpi-card"><div class="card-label">NET DOCUMENT SALES <span class="info" title="Complete header document value: sales less returns">i</span></div><div id="kpi-net" class="kpi-value">—</div><div class="kpi-foot"><span class="dot gold"></span> USD · header document values</div></article>
+      <article class="kpi-card"><div class="card-label">SALES DOCUMENT VALUE</div><div id="kpi-sales" class="kpi-value">—</div><div class="kpi-foot"><span class="dot"></span> Non-canceled sales headers</div></article>
+      <article class="kpi-card"><div class="card-label">RETURN DOCUMENT VALUE</div><div id="kpi-returns" class="kpi-value">—</div><div class="kpi-foot"><span class="dot muted"></span> August return detail unavailable</div></article>
+      <article class="kpi-card"><div class="card-label">COVERED GROSS MARGIN</div><div id="kpi-margin" class="kpi-value">—</div><div class="kpi-foot"><span class="dot"></span> Sales with usable line detail</div></article>
+    </section>
+
+    <section class="main-grid">
+      <div class="primary-column">
+        <article class="panel trend-panel">
+          <div class="panel-head"><div><p class="eyebrow">PERFORMANCE</p><h2>Sales through the weeks</h2><p class="panel-sub">Covered sales · System Currency (USD) · by posting date</p></div><span class="chart-key"><i></i> Sales</span></div>
+          <div id="trend" class="chart" role="img" aria-label="Sales trend chart"></div>
+          <p class="chart-note">Daily detail follows source coverage. August returns are shown as document totals only.</p>
+        </article>
+        <section class="rank-grid">
+          <article class="panel rank-panel"><div class="panel-head"><div><p class="eyebrow">CUSTOMERS</p><h2>Leading accounts</h2></div><span class="rank-unit">SC USD</span></div><div id="customers" class="rank-list"></div></article>
+          <article class="panel rank-panel"><div class="panel-head"><div><p class="eyebrow">PRODUCTS</p><h2>Top items</h2></div><span class="rank-unit">SC USD</span></div><div id="items" class="rank-list"></div></article>
+        </section>
+      </div>
+      <aside class="panel ai-panel" aria-labelledby="ask-title">
+        <div class="ai-heading"><span class="sparkle" aria-hidden="true">✳</span><div><p class="eyebrow">YOUR DATA, IN CONTEXT</p><h2 id="ask-title">Ask AI</h2></div><span class="demo-badge">DEMO</span></div>
+        <p class="ai-intro">Ask a sales question. Get a grounded answer with the measure and coverage behind it.</p>
+        <div class="prompt-chips" aria-label="Suggested questions"><button type="button" data-question="How did August sales compare with July?">Compare the months <span>↗</span></button><button type="button" data-question="Who are the top customers?">Show top customers <span>↗</span></button><button type="button" data-question="What was August return value?">August returns <span>↗</span></button><button type="button" data-question="What was the gross margin?">Gross margin <span>↗</span></button></div>
+        <div id="conversation" class="conversation" aria-live="polite" aria-relevant="additions"></div>
+        <form id="ask-form" class="ask-form"><label for="question">YOUR QUESTION</label><div class="input-wrap"><input id="question" name="question" maxlength="500" placeholder="Ask about sales, returns, customers…" autocomplete="off" required><button aria-label="Analyze question" type="submit">↑</button></div><p>Answers use the current period and source coverage rules.</p></form>
+        <div class="ai-foot"><span class="status-mark"></span><span>DEMO ANALYST · READ-ONLY</span><button type="button" id="clear-chat">Clear</button></div>
+      </aside>
+    </section>
+    <footer class="footnote"><span>WOODEN BAKERY · SALES & RETURNS INTELLIGENCE</span><span>Source snapshot: July–August 2026 · Descriptive analysis only</span></footer>
+  </main>
+</body>
+</html>

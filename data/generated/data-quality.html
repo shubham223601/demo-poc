@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Wooden Bakery — Data Quality</title>
+<style>
+  body { font-family: system-ui, -apple-system, Segoe UI, sans-serif; margin: 2rem; color: #1a1a1a; background: #ffffff; line-height: 1.5; }
+  h1 { font-size: 1.5rem; }
+  h2 { font-size: 1.15rem; margin-top: 2rem; }
+  table { border-collapse: collapse; width: 100%; margin-top: 0.5rem; }
+  th, td { border: 1px solid #ccc; padding: 0.4rem 0.6rem; text-align: left; vertical-align: top; font-size: 0.9rem; }
+  th { background: #f0f0f0; }
+  pre { white-space: pre-wrap; margin: 0; font-size: 0.8rem; }
+  .status { font-weight: bold; padding: 0.1rem 0.4rem; border: 1px solid #1a1a1a; border-radius: 0.25rem; }
+  .status-pass { border-style: solid; }
+  .status-warn { border-style: dashed; }
+  .status-fail, .status-blocked { border-style: double; border-width: 3px; }
+  .refresh-banner { padding: 0.75rem 1rem; border: 1px solid #1a1a1a; border-radius: 0.25rem; margin-bottom: 1.5rem; }
+  .visually-hidden { position: absolute; left: -9999px; }
+</style>
+</head>
+<body>
+  <h1>Wooden Bakery — Data Quality</h1>
+  <div class="refresh-banner" role="status">
+    <strong>Overall status: WARN</strong><br />
+    Report generated: 2026-09-26T19:45:10.482Z<br />
+    Last successful refresh: 2026-09-26T19:45:10.027Z (run 2026-09-26T19-45-02-448Z__F-002, status done)<br />
+           Source file: July August sales and returns.xlsx (sha256 fa041c7bc17488e903529600448a97825b8f910ca655047c69f3d0fac479a373)
+  </div>
+
+  
+    <section aria-labelledby="metric-trustworthiness">
+      <h2 id="metric-trustworthiness">Metric trustworthiness</h2>
+      <p>Per AGENTS.md: failed data-quality gates must prevent affected KPIs from appearing trustworthy. This table is the current gate-to-metric mapping; F-004's KPI cards must read from it rather than presenting a number unconditionally.</p>
+      <table>
+        <caption class="visually-hidden">Metric trustworthiness: metric, status, and reason</caption>
+        <thead><tr><th scope="col">Metric</th><th scope="col">Status</th><th scope="col">Reason</th></tr></thead>
+        <tbody>
+      <tr>
+        <td>sales_value_sc</td>
+        <td><span class="status status-pass">TRUSTWORTHY</span></td>
+        <td>0.5% of sales headers have no detail lines and are excluded from SUM(row_total_sc) (threshold 5.0%, see D-005).</td>
+      </tr>
+      <tr>
+        <td>return_value_sc</td>
+        <td><span class="status status-fail">NOT TRUSTWORTHY</span></td>
+        <td>52.2% of return headers have no detail lines and are excluded from SUM(row_total_sc) (threshold 5.0%, see D-005).</td>
+      </tr>
+      <tr>
+        <td>net_sales_value_sc</td>
+        <td><span class="status status-fail">NOT TRUSTWORTHY</span></td>
+        <td>Derived from sales_value_sc and return_value_sc; inherits the worse of the two.</td>
+      </tr>
+      <tr>
+        <td>return_rate_by_value</td>
+        <td><span class="status status-fail">NOT TRUSTWORTHY</span></td>
+        <td>Derived from sales_value_sc and return_value_sc; inherits the worse of the two.</td>
+      </tr>
+      <tr>
+        <td>gross_profit</td>
+        <td><span class="status status-fail">NOT TRUSTWORTHY</span></td>
+        <td>No cross-currency-safe (SC or equivalent) field exists for header Gross Profit anywhere in the source; blocked per D-002.</td>
+      </tr>
+      <tr>
+        <td>gross_margin</td>
+        <td><span class="status status-fail">NOT TRUSTWORTHY</span></td>
+        <td>Depends on gross_profit, which is blocked per D-002.</td>
+      </tr></tbody>
+      </table>
+    </section>
+  
+    <section aria-labelledby="ingestion-time-checks-(from-the-last-build)">
+      <h2 id="ingestion-time-checks-(from-the-last-build)">Ingestion-time checks (from the last build)</h2>
+      <table>
+        <caption class="visually-hidden">Ingestion-time checks (from the last build): check name, status, and details</caption>
+        <thead><tr><th scope="col">Check</th><th scope="col">Status</th><th scope="col">Details</th></tr></thead>
+        <tbody>
+      <tr>
+        <td>cancellation_values</td>
+        <td><span class="status status-pass">PASS</span></td>
+        <td><pre>{&quot;sales_header_canceled&quot;:{&quot;N&quot;:45982,&quot;Y&quot;:155,&quot;C&quot;:155},&quot;returns_header_canceled&quot;:{&quot;N&quot;:10930,&quot;Y&quot;:45,&quot;C&quot;:46}}</pre></td>
+      </tr>
+      <tr>
+        <td>currency_values</td>
+        <td><span class="status status-pass">PASS</span></td>
+        <td><pre>{&quot;sales_header_document_currency&quot;:{&quot;LBP&quot;:21225,&quot;USD&quot;:25067},&quot;returns_header_document_currency&quot;:{&quot;LBP&quot;:3389,&quot;USD&quot;:7632},&quot;sales_detail_price_currency&quot;:{&quot;USD&quot;:255167,&quot;LBP&quot;:35386},&quot;returns_detail_price_currency&quot;:{&quot;USD&quot;:24391,&quot;LBP&quot;:2169}}</pre></td>
+      </tr>
+      <tr>
+        <td>date_bounds_and_validity</td>
+        <td><span class="status status-pass">PASS</span></td>
+        <td><pre>{&quot;sales_posting_date_min&quot;:&quot;2026-07-01&quot;,&quot;sales_posting_date_max&quot;:&quot;2026-08-31&quot;,&quot;sales_invalid_dates&quot;:0,&quot;sales_dates_outside_jul_aug_2026&quot;:0,&quot;returns_posting_date_min&quot;:&quot;2026-07-01&quot;,&quot;returns_posting_date_max&quot;:&quot;2026-08-31&quot;,&quot;returns_invalid_dates&quot;:0,&quot;returns_dates_outside_jul_aug_2026&quot;:0}</pre></td>
+      </tr>
+      <tr>
+        <td>duplicate_keys</td>
+        <td><span class="status status-pass">PASS</span></td>
+        <td><pre>{&quot;customers_bp_code&quot;:0,&quot;items_item_no&quot;:0,&quot;sales_headers_internal_number&quot;:0,&quot;returns_headers_numerator&quot;:0,&quot;sales_detail_lines&quot;:0,&quot;returns_detail_lines&quot;:0}</pre></td>
+      </tr>
+      <tr>
+        <td>functional_currency_field_completeness</td>
+        <td><span class="status status-warn">WARN</span></td>
+        <td><pre>{&quot;note&quot;:&quot;Descriptive only per D-002; FC field meaning/comparability is pending business confirmation and is NOT used for aggregation in this run.&quot;,&quot;sales_field_name&quot;:&quot;Document Total (FC)&quot;,&quot;returns_field_name&quot;:&quot;Document Total in FC&quot;,&quot;sales_headers_fc_zero_but_total_nonzero&quot;:21225,&quot;returns_headers_fc_zero_but_total_nonzero&quot;:3389}</pre></td>
+      </tr>
+      <tr>
+        <td>functional_currency_policy</td>
+        <td><span class="status status-partially_resolved">PARTIALLY_RESOLVED</span></td>
+        <td><pre>{&quot;note&quot;:&quot;Per D-002 (business-confirmed 2026-09-26): FC=Foreign Currency (unreliable; 0 for LBP rows), SC=System Currency=USD (reliable; populated for every line regardless of native currency). Adopted policy: sales/return value in USD = SUM(transaction_lines.row_total_sc) per document. This column is now captured (row_total_sc) but not pre-aggregated here — aggregation is a semantic-layer (F-004+) concern, not ingestion.&quot;,&quot;resolved&quot;:[&quot;sales_value_sc&quot;,&quot;return_value_sc (via SUM of transaction_lines.row_total_sc)&quot;],&quot;still_blocked&quot;:[&quot;gross_profit_source has no SC equivalent anywhere in the source; no cross-currency-safe gross profit/margin field exists yet&quot;,&quot;documents with zero detail lines (see orphan_keys/reconciliation checks) have no derivable SC total at all&quot;]}</pre></td>
+      </tr>
+      <tr>
+        <td>non_positive_quantities</td>
+        <td><span class="status status-warn">WARN</span></td>
+        <td><pre>{&quot;sales_detail_lines_non_positive_quantity&quot;:0,&quot;returns_detail_lines_non_positive_quantity&quot;:1}</pre></td>
+      </tr>
+      <tr>
+        <td>orphan_keys</td>
+        <td><span class="status status-warn">WARN</span></td>
+        <td><pre>{&quot;sales_detail_lines_without_header&quot;:2227,&quot;returns_detail_lines_without_header&quot;:18,&quot;sales_detail_lines_unknown_item&quot;:40,&quot;returns_detail_lines_unknown_item&quot;:2,&quot;sales_headers_unknown_customer&quot;:41,&quot;returns_headers_unknown_customer&quot;:31}</pre></td>
+      </tr>
+      <tr>
+        <td>returns_header_detail_reconciliation</td>
+        <td><span class="status status-warn">WARN</span></td>
+        <td><pre>{&quot;tolerance&quot;:{&quot;absolute&quot;:0.01,&quot;relative&quot;:0.005},&quot;compared_field&quot;:&quot;Document Total vs sum(Row Total)&quot;,&quot;headers_within_tolerance&quot;:2197,&quot;headers_outside_tolerance&quot;:3066,&quot;headers_without_any_detail_line&quot;:5758,&quot;total_headers&quot;:11021}</pre></td>
+      </tr>
+      <tr>
+        <td>sales_header_detail_reconciliation</td>
+        <td><span class="status status-warn">WARN</span></td>
+        <td><pre>{&quot;tolerance&quot;:{&quot;absolute&quot;:0.01,&quot;relative&quot;:0.005},&quot;compared_field&quot;:&quot;Document Total vs sum(Row Total)&quot;,&quot;headers_within_tolerance&quot;:26344,&quot;headers_outside_tolerance&quot;:19694,&quot;headers_without_any_detail_line&quot;:254,&quot;total_headers&quot;:46292}</pre></td>
+      </tr>
+      <tr>
+        <td>sheet_discovery</td>
+        <td><span class="status status-pass">PASS</span></td>
+        <td><pre>found=[Customers, Items, Sales Header 4=DN 86=ND, Sales Details, Returns Header 5=DC 87=ND, Returns Details] missing=[] unexpected=[]</pre></td>
+      </tr></tbody>
+      </table>
+    </section>
+  
+    <section aria-labelledby="live-checks-(recomputed-against-the-current-canonical-model)">
+      <h2 id="live-checks-(recomputed-against-the-current-canonical-model)">Live checks (recomputed against the current canonical model)</h2>
+      <table>
+        <caption class="visually-hidden">Live checks (recomputed against the current canonical model): check name, status, and details</caption>
+        <thead><tr><th scope="col">Check</th><th scope="col">Status</th><th scope="col">Details</th></tr></thead>
+        <tbody>
+      <tr>
+        <td>sale_header_detail_reconciliation</td>
+        <td><span class="status status-warn">WARN</span></td>
+        <td><pre>{&quot;tolerance&quot;:{&quot;absolute&quot;:0.01,&quot;relative&quot;:0.005},&quot;withinTolerance&quot;:26344,&quot;outsideTolerance&quot;:19694,&quot;withoutLines&quot;:254,&quot;total&quot;:46292}</pre></td>
+      </tr>
+      <tr>
+        <td>sale_orphan_detail_lines</td>
+        <td><span class="status status-warn">WARN</span></td>
+        <td><pre>{&quot;lines_without_header&quot;:2227}</pre></td>
+      </tr>
+      <tr>
+        <td>sale_orphan_item_keys</td>
+        <td><span class="status status-warn">WARN</span></td>
+        <td><pre>{&quot;lines_with_unknown_item&quot;:40}</pre></td>
+      </tr>
+      <tr>
+        <td>sale_orphan_customer_keys</td>
+        <td><span class="status status-warn">WARN</span></td>
+        <td><pre>{&quot;headers_with_unknown_customer&quot;:41}</pre></td>
+      </tr>
+      <tr>
+        <td>sale_invalid_currency</td>
+        <td><span class="status status-pass">PASS</span></td>
+        <td><pre>{&quot;expected&quot;:[&quot;USD&quot;,&quot;LBP&quot;],&quot;unexpected&quot;:[]}</pre></td>
+      </tr>
+      <tr>
+        <td>sale_invalid_exchange_rate</td>
+        <td><span class="status status-pass">PASS</span></td>
+        <td><pre>{&quot;headers_with_invalid_rate&quot;:0}</pre></td>
+      </tr>
+      <tr>
+        <td>sale_invalid_dates</td>
+        <td><span class="status status-pass">PASS</span></td>
+        <td><pre>{&quot;null_dates&quot;:0,&quot;outside_jul_aug_2026&quot;:0}</pre></td>
+      </tr>
+      <tr>
+        <td>sale_non_positive_quantities</td>
+        <td><span class="status status-pass">PASS</span></td>
+        <td><pre>{&quot;lines_with_non_positive_quantity&quot;:0}</pre></td>
+      </tr>
+      <tr>
+        <td>sale_functional_currency_field_completeness</td>
+        <td><span class="status status-warn">WARN</span></td>
+        <td><pre>{&quot;note&quot;:&quot;Descriptive only, see D-002: document_total_fc is 0/blank for LBP headers by design (FC = Foreign Currency, not currency-independent).&quot;,&quot;headers_fc_zero_but_total_nonzero&quot;:21225}</pre></td>
+      </tr>
+      <tr>
+        <td>sale_cancellation_leakage</td>
+        <td><span class="status status-pass">PASS</span></td>
+        <td><pre>{&quot;note&quot;:&quot;Default reports must exclude canceled ∈ {Y, C} per PRODUCT.md section 7. This is the value that would leak in if a query forgot that filter.&quot;,&quot;by_canceled_value&quot;:[{&quot;canceled&quot;:&quot;C&quot;,&quot;doc_count&quot;:155,&quot;total_native&quot;:4270386080.14},{&quot;canceled&quot;:&quot;N&quot;,&quot;doc_count&quot;:45982,&quot;total_native&quot;:381319082204.5},{&quot;canceled&quot;:&quot;Y&quot;,&quot;doc_count&quot;:155,&quot;total_native&quot;:4091117034.19}]}</pre></td>
+      </tr>
+      <tr>
+        <td>return_header_detail_reconciliation</td>
+        <td><span class="status status-warn">WARN</span></td>
+        <td><pre>{&quot;tolerance&quot;:{&quot;absolute&quot;:0.01,&quot;relative&quot;:0.005},&quot;withinTolerance&quot;:2197,&quot;outsideTolerance&quot;:3066,&quot;withoutLines&quot;:5758,&quot;total&quot;:11021}</pre></td>
+      </tr>
+      <tr>
+        <td>return_orphan_detail_lines</td>
+        <td><span class="status status-warn">WARN</span></td>
+        <td><pre>{&quot;lines_without_header&quot;:18}</pre></td>
+      </tr>
+      <tr>
+        <td>return_orphan_item_keys</td>
+        <td><span class="status status-warn">WARN</span></td>
+        <td><pre>{&quot;lines_with_unknown_item&quot;:2}</pre></td>
+      </tr>
+      <tr>
+        <td>return_orphan_customer_keys</td>
+        <td><span class="status status-warn">WARN</span></td>
+        <td><pre>{&quot;headers_with_unknown_customer&quot;:31}</pre></td>
+      </tr>
+      <tr>
+        <td>return_invalid_currency</td>
+        <td><span class="status status-pass">PASS</span></td>
+        <td><pre>{&quot;expected&quot;:[&quot;USD&quot;,&quot;LBP&quot;],&quot;unexpected&quot;:[]}</pre></td>
+      </tr>
+      <tr>
+        <td>return_invalid_exchange_rate</td>
+        <td><span class="status status-pass">PASS</span></td>
+        <td><pre>{&quot;headers_with_invalid_rate&quot;:0}</pre></td>
+      </tr>
+      <tr>
+        <td>return_invalid_dates</td>
+        <td><span class="status status-pass">PASS</span></td>
+        <td><pre>{&quot;null_dates&quot;:0,&quot;outside_jul_aug_2026&quot;:0}</pre></td>
+      </tr>
+      <tr>
+        <td>return_non_positive_quantities</td>
+        <td><span class="status status-warn">WARN</span></td>
+        <td><pre>{&quot;lines_with_non_positive_quantity&quot;:1}</pre></td>
+      </tr>
+      <tr>
+        <td>return_functional_currency_field_completeness</td>
+        <td><span class="status status-warn">WARN</span></td>
+        <td><pre>{&quot;note&quot;:&quot;Descriptive only, see D-002: document_total_fc is 0/blank for LBP headers by design (FC = Foreign Currency, not currency-independent).&quot;,&quot;headers_fc_zero_but_total_nonzero&quot;:3389}</pre></td>
+      </tr>
+      <tr>
+        <td>return_cancellation_leakage</td>
+        <td><span class="status status-pass">PASS</span></td>
+        <td><pre>{&quot;note&quot;:&quot;Default reports must exclude canceled ∈ {Y, C} per PRODUCT.md section 7. This is the value that would leak in if a query forgot that filter.&quot;,&quot;by_canceled_value&quot;:[{&quot;canceled&quot;:&quot;C&quot;,&quot;doc_count&quot;:46,&quot;total_native&quot;:192780398.75},{&quot;canceled&quot;:&quot;N&quot;,&quot;doc_count&quot;:10930,&quot;total_native&quot;:30334569217.32},{&quot;canceled&quot;:&quot;Y&quot;,&quot;doc_count&quot;:45,&quot;total_native&quot;:222020943.75}]}</pre></td>
+      </tr></tbody>
+      </table>
+    </section>
+</body>
+</html>
