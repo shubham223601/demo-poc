@@ -6,6 +6,16 @@ let activeFilters = { period: 'both', currency: 'all' };
 function showNotice(message) { const notice = $('notice'); notice.textContent = message; notice.hidden = false; }
 function hideNotice() { $('notice').hidden = true; }
 
+// If the session expires or is missing, send the user back to the login page.
+function guardAuth(response) {
+  if (response.status === 401) { window.location.assign('/login'); return true; }
+  return false;
+}
+
+async function signOut() {
+  try { await fetch('/api/logout', { method: 'POST' }); } finally { window.location.assign('/login'); }
+}
+
 function renderTrend(rows = []) {
   const el = $('trend');
   if (!rows.length) { el.innerHTML = '<p class="panel-sub">No sales detail for this selection.</p>'; el.setAttribute('aria-label', 'No trend data'); return; }
@@ -37,6 +47,7 @@ async function loadOverview() {
   try {
     const query = new URLSearchParams(activeFilters);
     const response = await fetch(`/api/overview?${query}`);
+    if (guardAuth(response)) return;
     if (!response.ok) throw new Error('Could not load dashboard data.');
     const data = await response.json();
     $('kpi-net').textContent = currency(data.net_document_sales_usd);
@@ -63,6 +74,7 @@ async function ask(question) {
   const submit = $('ask-form').querySelector('button'); submit.disabled = true;
   try {
     const response = await fetch('/api/ask', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ question:q, filters:activeFilters }) });
+    if (guardAuth(response)) { loading.remove(); submit.disabled = false; return; }
     const result = await response.json();
     if (!response.ok) throw new Error(result.error || 'Could not analyze this question.');
     loading.remove();
@@ -76,4 +88,5 @@ $('period').addEventListener('change', (event) => { activeFilters.period = event
 $('ask-form').addEventListener('submit', (event) => { event.preventDefault(); const input = $('question'); ask(input.value); input.value = ''; });
 document.querySelectorAll('[data-question]').forEach((button) => button.addEventListener('click', () => ask(button.dataset.question)));
 $('clear-chat').addEventListener('click', () => { $('conversation').replaceChildren(); });
+$('signout').addEventListener('click', signOut);
 loadOverview();

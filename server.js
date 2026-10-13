@@ -11,6 +11,7 @@ import { CANONICAL_DB_PATH } from './config.js';
 import { getOverviewAnalytics } from './lib/analytics.js';
 import { parseFilters } from './lib/filters.js';
 import { answerQuestion } from './lib/analyst.js';
+import { verifyToken, createToken, checkCredentials, sessionCookie, clearCookie, COOKIE_NAME } from './lib/auth.js';
 
 const APP_ROOT = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC = path.join(APP_ROOT, 'public');
@@ -39,8 +40,82 @@ async function bodyJson(req) {
 }
 
 
-const server = http.createServer(async (req, res) => { const url = new URL(req.url, 'http://localhost'); if (req.method === 'GET' && url.pathname === '/') { const html = await readFile(path.join(PUBLIC, 'index.html')); res.writeHead(200, { 'Content-Type': types['.html'], 'Cache-Control': 'no-store' }); res.end(html); return; } if (req.method === 'GET' && ['/styles.css', '/app.js'].includes(url.pathname)) { const file = path.join(PUBLIC, path.basename(url.pathname)); res.writeHead(200, { 'Content-Type': types[path.extname(file)], 'Cache-Control': 'no-cache' }); res.end(await readFile(file)); return; } if (req.method === 'GET' && url.pathname === '/logo.png') { res.writeHead(200, { 'Content-Type': types['.png'], 'Cache-Control': 'public, max-age=86400' }); res.end(await readFile(path.join(PUBLIC, 'logo.png'))); return; } if (req.method === 'GET' && url.pathname.startsWith('/fonts/')) { const filename = path.basename(url.pathname); const file = path.join(PUBLIC, 'fonts', filename); if (!['Montserrat-Regular.otf', 'Montserrat-Bold.otf', 'Montserrat-Black.otf'].includes(filename)) return json(res, { error: 'Not found' }, 404); res.writeHead(200, { 'Content-Type': types['.otf'], 'Cache-Control': 'public, max-age=86400' }); res.end(await readFile(file)); return; }
-let db;
+function sendFile(res, filePath, contentType, cacheControl) {
+  return readFile(filePath).then((content) => {
+    res.writeHead(200, { 'Content-Type': contentType, 'Cache-Control': cacheControl });
+    res.end(content);
+  });
+}
+
+function parseCookies(req) {
+  const header = req.headers.cookie || '';
+  const out = {};
+  for (const part of header.split(';')) {
+    const idx = part.indexOf('=');
+    if (idx === -1) continue;
+    out[part.slice(0, idx).trim()] = decodeURIComponent(part.slice(idx + 1).trim());
+  }
+  return out;
+}
+
+function isAuthenticated(req) {
+  return Boolean(verifyToken(parseCookies(req)[COOKIE_NAME]));
+}
+
+const server = http.createServer(async (req, res) => {
+  const url = new URL(req.url, 'http://localhost');
+
+  // Auth endpoints (never require a session).
+  if (req.method === 'POST' && url.pathname === '/api/login') {
+    try {
+      const input = await bodyJson(req);
+      const email = typeof input.email === 'string' ? input.email.trim() : '';
+      const password = typeof input.password === 'string' ? input.password : '';
+      if (!checkCredentials(email, password)) {
+        return json(res, { error: 'Incorrect email or password.' }, 401);
+      }
+      res.setHeader('Set-Cookie', sessionCookie(createToken(email)));
+      return json(res, { ok: true });
+    } catch (error) {
+      return json(res, { error: 'Sign in failed. Please try again.' }, 400);
+    }
+  }
+
+  if (req.method === 'POST' && url.pathname === '/api/logout') {
+    res.setHeader('Set-Cookie', clearCookie());
+    return json(res, { ok: true });
+  }
+
+  // Login page is always reachable; the app page requires a session.
+  if (req.method === 'GET' && (url.pathname === '/' || url.pathname === '/login')) {
+    if (isAuthenticated(req)) return sendFile(res, path.join(PUBLIC, 'index.html'), types['.html'], 'no-store');
+    return sendFile(res, path.join(PUBLIC, 'login.html'), types['.html'], 'no-store');
+  }
+
+  // Public health check for platform uptime probes.
+  if (req.method === 'GET' && url.pathname === '/health') return json(res, { status: 'ok' });
+
+  // Static assets needed by both pages.
+  if (req.method === 'GET' && ['/styles.css', '/app.js', '/login.css', '/login.js'].includes(url.pathname)) {
+    const file = path.join(PUBLIC, path.basename(url.pathname));
+    return sendFile(res, file, types[path.extname(file)], 'no-cache');
+  }
+  if (req.method === 'GET' && url.pathname === '/logo.png') {
+    return sendFile(res, path.join(PUBLIC, 'logo.png'), types['.png'], 'public, max-age=86400');
+  }
+  if (req.method === 'GET' && url.pathname.startsWith('/fonts/')) {
+    const filename = path.basename(url.pathname);
+    if (!['Montserrat-Regular.otf', 'Montserrat-Bold.otf', 'Montserrat-Black.otf'].includes(filename)) return json(res, { error: 'Not found' }, 404);
+    return sendFile(res, path.join(PUBLIC, 'fonts', filename), types['.otf'], 'public, max-age=86400');
+  }
+
+  // Everything below requires an authenticated session.
+  if (!isAuthenticated(req)) {
+    if (url.pathname.startsWith('/api/')) return json(res, { error: 'Unauthorized' }, 401);
+    return json(res, { error: 'Not found' }, 404);
+  }
+
+  let db;
   try {
     if (req.method === 'GET' && url.pathname === '/api/overview') {
       db = openDb();
@@ -56,7 +131,6 @@ let db;
       json(res, answer);
       return;
     }
-    if (req.method === 'GET' && url.pathname === '/health') return json(res, { status: 'ok' });
     json(res, { error: 'Not found' }, 404);
   } catch (error) {
     console.error('POC request failed', {

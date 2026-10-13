@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111210">
+  <title>Wooden Bakery · Sign in</title>
+  <link rel="icon" href="/logo.png" type="image/png">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/login.css">
+  <script src="/login.js" defer></script>
+</head>
+<body class="auth-body">
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="Wooden Bakery Sales Intelligence home"><img src="/logo.png" alt="Wooden Bakery"></a>
+    <div class="topbar-right"><span class="period-tag"><i></i> JUL–AUG 2026 SNAPSHOT</span></div>
+  </header>
+  <main class="auth-shell">
+    <section class="auth-card" aria-labelledby="auth-title">
+      <p class="eyebrow">SALES INTELLIGENCE <span> / DEMO</span></p>
+      <h1 id="auth-title">Sign in to continue</h1>
+      <p class="lede">This demo is private. Enter the credentials provided to access the dashboard.</p>
+      <form id="login-form" class="auth-form" novalidate>
+        <label class="field"><span>EMAIL</span>
+          <input id="email" name="email" type="email" autocomplete="username" placeholder="you@example.com" required>
+        </label>
+        <label class="field"><span>PASSWORD</span>
+          <input id="password" name="password" type="password" autocomplete="current-password" placeholder="••••••••" required>
+        </label>
+        <p id="auth-error" class="auth-error" role="alert" hidden></p>
+        <button id="login-submit" type="submit">Sign in</button>
+      </form>
+      <p class="auth-foot"><span class="status-mark"></span> READ-ONLY DEMO · AUTHORIZED ACCESS ONLY</p>
+    </section>
+  </main>
+</body>
+</html>
